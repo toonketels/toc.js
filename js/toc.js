@@ -17,7 +17,9 @@
 
 
 // Our parser
-function parseHtml( element ) {
+function parseHtml( filters, element ) {
+    filters = filters || [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
+    
     // In case arg is not supplied, start from body
     element = element || document;
     
@@ -28,37 +30,38 @@ function parseHtml( element ) {
     // Untill we have no more next elements
     while ( cur != null ) {
         
-        // get the children
+        // get the children nodes if those are html tags
         if( cur.nodeType == 1 ) {
 		
-		// Log were we are
-		console.log( cur.tagName );
+	    // If the element watches what we defined in the array,
+	    // add it to the toc
+	    for (var i = 0; i < filters.length; i++) {
+	        if(filters[i].toLowerCase() == cur.tagName.toLowerCase()) {
 		
-		// Set the id if there is none;
-		cur.id = cur.id || "toc-" + counter;
+		    // Set the id if there is none;
+		    cur.id = cur.id || "toc-" + counter;
+			
+		    // increment counter
+		    counter ++;
+			
+		    // Create item object
+		    var item = {
+		        'tag': cur.tagName,
+		        'title': cur.innerText,
+		        'link': '#'+cur.id
+		    };
+			
+		    addElementToToc( item );	
+		    }
+		}
 		
-		// increment counter
-		counter ++;
-		
-		// Create item object
-		var item = {
-		    'tag': cur.tagName,
-		    'title': cur.innerText,
-		    'link': '#'+cur.id
-		};
-		
-		console.log( item );
-		
-		addElementToToc( item );
-  
-            parseHtml( cur );
+	    parseHtml( filters, cur );
         }
 
         cur = cur.nextSibling;
     }
 
-    return this.elements;
-
+    return this;
 }
 
 // Our modal
@@ -70,7 +73,9 @@ function addElementToToc( item ) {
 
 
 // Our tocRenderer
-function renderToc() {
+function renderToc( element ) {
+    // the element to append the toc too
+    element = element || document.body;
     
     // Create out html element
     var ulToc = document.createElement('ul');
@@ -88,12 +93,12 @@ function renderToc() {
 	ulToc.appendChild(child);
     }
     
-    document.body.appendChild(ulToc); 
+    element.appendChild(ulToc); 
 }
 
 
 // Create a table of contents
-parseHtml( document.body  );
+parseHtml( [ 'h1', 'h2', 'h3' ], document.body  );
 
 renderToc();
 
