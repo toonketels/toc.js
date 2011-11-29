@@ -12,94 +12,90 @@
 //	defines methods for adding items
 // 3. toc renderer:
 //	displays a toc
+//
+// Namespace it: ref: http://www.brainonfire.net/blog/javascript-object-literal-namespace/
 //----------------------------------------------------------
 //----------------------------------------------------------
 
 
-// Our parser
-function parseHtml( filters, element ) {
-    filters = filters || [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
+var toc = {
     
-    // In case arg is not supplied, start from body
-    element = element || document;
+    // Our model
+    toc: {
+	model: [],
+	
+	addElementToToc:function( item ) {
+	    toc.toc.model.push( item );
+	}
+	
+    },
     
-    var cur = element.firstChild;
+    // Our parser
+    parseHtml:function( filters, element ) {
+	// Default filters if none provided
+	filters = filters || [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6' ];
+	// In case arg is not supplied, start from body
+	element = element || document;
     
-    var counter = counter || 1;
+	var cur = element.firstChild;
     
-    // Untill we have no more next elements
-    while ( cur != null ) {
+	var counter = counter || 1;
+    
+	// Untill we have no more next elements
+	while ( cur != null ) {
         
-        // get the children nodes if those are html tags
-        if( cur.nodeType == 1 ) {
+	    // get the children nodes if those are html tags
+	    if( cur.nodeType == 1 ) {
 		
-	    // If the element watches what we defined in the array,
-	    // add it to the toc
-	    for (var i = 0; i < filters.length; i++) {
-	        if(filters[i].toLowerCase() == cur.tagName.toLowerCase()) {
+	        // If the element watches what we defined in the array,
+	        // add it to the toc
+	        for (var i = 0; i < filters.length; i++) {
+	            if(filters[i].toLowerCase() == cur.tagName.toLowerCase()) {
 		
-		    // Set the id if there is none;
-		    cur.id = cur.id || "toc-" + counter;
+			// Set the id if there is none;
+			cur.id = cur.id || "toc-" + counter;
 			
-		    // increment counter
-		    counter ++;
+			// increment counter
+			counter ++;
 			
-		    // Create item object
-		    var item = {
-		        'tag': cur.tagName,
-		        'title': cur.innerText,
-		        'link': '#'+cur.id
-		    };
+			// Create item object
+			var item = {
+			    'tag': cur.tagName,
+			    'title': cur.innerText,
+			    'link': '#'+cur.id
+			};
 			
-		    addElementToToc( item );	
+			toc.toc.addElementToToc( item );	
+			}
 		    }
-		}
-		
-	    parseHtml( filters, cur );
-        }
-
-        cur = cur.nextSibling;
-    }
-
-    return this;
-}
-
-// Our modal
-var toc = []
-
-function addElementToToc( item ) {
-	toc.push( item );
-}
-
-
-// Our tocRenderer
-function renderToc( element ) {
-    // the element to append the toc too
-    element = element || document.body;
+		toc.parseHtml( filters, cur );
+	    }
+	    cur = cur.nextSibling;
+	}
+	return this;
+    },
     
-    // Create out html element
-    var ulToc = document.createElement('ul');
-    ulToc.setAttribute('id', 'toc');
+    // Our renderer
+    renderToc: function( element ) {
+        // the element to append the toc too
+	element = element || document.body;
     
-    // Add the toc to it.
-    for( var i = 0; i < toc.length ; i++ ) {
-	var child = document.createElement('li');
-	var link = document.createElement('a');
-	link.setAttribute('href', toc[i].link);
-	link.innerHTML = toc[i].title;
+	// Create out html element
+	var ulToc = document.createElement('ul');
+	ulToc.setAttribute('id', 'toc');
+    
+	// Add the toc to it.
+	for( var i = 0; i < toc.toc.model.length ; i++ ) {
+	    var child = document.createElement('li');
+	    var link = document.createElement('a');
+	    link.setAttribute('href', toc.toc.model[i].link);
+	    link.innerHTML = toc.toc.model[i].title;
 	
-	child.appendChild(link);
+	    child.appendChild(link);
 	
-	ulToc.appendChild(child);
-    }
-    
-    element.appendChild(ulToc); 
+	    ulToc.appendChild(child);
+	}
+	
+	element.appendChild(ulToc); 
+    }  
 }
-
-
-// Create a table of contents
-parseHtml( [ 'h1', 'h2', 'h3' ], document.body  );
-
-renderToc();
-
-console.log(toc);
