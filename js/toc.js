@@ -24,8 +24,15 @@ var toc = {
     toc: {
 	model: [],
 	
+	// Array of all keycodes
+	keys: [],
+	
 	addElementToToc:function( item ) {
 	    toc.toc.model.push( item );
+	},
+	
+	addKeyCode: function( keyCode ) {
+	    toc.toc.keys.push( keyCode );
 	}
 	
     },
@@ -40,6 +47,7 @@ var toc = {
 	var cur = element.firstChild;
     
 	var counter = counter || 1;
+	var keycode = keycode || 97;
     
 	// Untill we have no more next elements
 	while ( cur != null ) {
@@ -55,23 +63,47 @@ var toc = {
 			// Set the id if there is none;
 			cur.id = cur.id || "toc-" + counter;
 			
-			// increment counter
-			counter ++;
-			
 			// Create item object
 			var item = {
 			    'tag': cur.tagName,
 			    'title': cur.innerText,
-			    'link': '#'+cur.id
+			    'link': '#'+cur.id,
+			    'keyCode': keycode
 			};
 			
+			// Add to our model
 			toc.toc.addElementToToc( item );	
-			}
+			toc.toc.addKeyCode( keycode );
+			
+			// increment counter
+			counter ++;
+			keycode ++;
 		    }
 		toc.parseHtml( filters, cur );
+		}
 	    }
 	    cur = cur.nextSibling;
 	}
+	
+	// Add an event listener
+	document.addEventListener('keypress', function( e ) {
+	  console.log(e);
+	  
+	  // Check if the charCode is one of the items defined by us
+	  // 
+	  for (var i = 0; i < toc.toc.keys.length; i++) {
+	    if( e.charCode == toc.toc.keys[i] ) {
+	      
+	      var eventObject = document.createEvent( 'HTMLEvents' );
+	      eventObject.initEvent( 'click', true, false );
+	      return !document.getElementById( toc.toc.keys[i] ).dispatchEvent( eventObject );
+	      
+	    } 
+	  }
+	  
+	});
+	
+	// End it
 	return this;
     },
     
@@ -89,6 +121,7 @@ var toc = {
 	    var child = document.createElement('li');
 	    var link = document.createElement('a');
 	    link.setAttribute('href', toc.toc.model[i].link);
+	    link.setAttribute('id', toc.toc.model[i].keyCode);
 	    link.innerHTML = toc.toc.model[i].title;
 	
 	    child.appendChild(link);
@@ -97,5 +130,7 @@ var toc = {
 	}
 	
 	element.appendChild(ulToc); 
-    }  
+    }
+    
+    // Add events
 }
